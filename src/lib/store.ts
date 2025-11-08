@@ -279,10 +279,10 @@ export function loadState(): State {
   // Force data refresh if version mismatch
   if (typeof window !== 'undefined') {
     const dataVersion = localStorage.getItem('hisabguru_data_version');
-    if (dataVersion !== 'v1.2') {
+    if (dataVersion !== 'v2.0') {
       localStorage.removeItem('hisabguru_state');
       localStorage.removeItem('hisabguru_accounts');
-      localStorage.setItem('hisabguru_data_version', 'v1.2');
+      localStorage.setItem('hisabguru_data_version', 'v2.0');
       initializeAccounts();
       seedSampleData();
       recalculateAllAccountBalances();
@@ -412,61 +412,396 @@ export function getSummary(monthOffset: number) {
 function seedSampleData() {
   const s: State = { transactions: [], notifications: [], memories: [] };
   const now = new Date();
-
-  // Seed current month up to today (Nov 6, 2025)
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
   const currentDay = now.getDate();
 
-  // Add current month allowance on 1st
+  // === SEED MEMORIES FOR CONTEXT ===
+  s.memories.push(
+    {
+      id: Math.random().toString(36),
+      text: "User is a university student studying Computer Science, lives with family in Dhaka",
+      timestamp: new Date(currentYear, currentMonth - 3, 1).toISOString()
+    },
+    {
+      id: Math.random().toString(36),
+      text: "Monthly budget goal: Save at least ৳1,500 each month for a new laptop",
+      timestamp: new Date(currentYear, currentMonth - 2, 15).toISOString()
+    },
+    {
+      id: Math.random().toString(36),
+      text: "Prefers using bKash for online payments and food delivery, Cash for daily transport",
+      timestamp: new Date(currentYear, currentMonth - 2, 20).toISOString()
+    },
+    {
+      id: Math.random().toString(36),
+      text: "Birthday in December - planning to celebrate with friends, budgeting ৳2,000 for the event",
+      timestamp: new Date(currentYear, currentMonth - 1, 10).toISOString()
+    },
+    {
+      id: Math.random().toString(36),
+      text: "Started a part-time freelance project - expecting ৳8,000 income this month",
+      timestamp: new Date(currentYear, currentMonth, 1).toISOString()
+    }
+  );
+
+  // === MONTH -2: Complete financial picture ===
+  const month2 = getMonthRange(-2);
+  const m2Start = new Date(month2.start);
+  
+  // Income - Month -2
+  s.transactions.push(
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 8000,
+      currency: "BDT",
+      category: "Allowance",
+      note: "Monthly allowance from family",
+      source: "manual",
+      date: new Date(m2Start.getFullYear(), m2Start.getMonth(), 1).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 5000,
+      currency: "BDT",
+      category: "Freelance",
+      note: "Web design project payment",
+      source: "manual",
+      date: new Date(m2Start.getFullYear(), m2Start.getMonth(), 5).toISOString(),
+      account: "bKash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(m2Start.getFullYear(), m2Start.getMonth(), 8).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(m2Start.getFullYear(), m2Start.getMonth(), 15).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(m2Start.getFullYear(), m2Start.getMonth(), 22).toISOString(),
+      account: "Cash",
+      location: null,
+    }
+  );
+
+  // Expenses - Month -2 (Diverse categories)
+  const m2Expenses = [
+    { day: 2, amount: 250, category: "Food & Dining", note: "Breakfast at Star Kabab", account: "Cash", source: "manual" },
+    { day: 2, amount: 180, category: "Transport", note: "Pathao bike ride to campus", account: "bKash", source: "sms" },
+    { day: 3, amount: 450, category: "Food & Dining", note: "Lunch with classmates", account: "bKash", source: "sms" },
+    { day: 4, amount: 1200, category: "Education", note: "Programming course subscription", account: "bKash", source: "mail" },
+    { day: 5, amount: 60, category: "Transport", note: "Bus fare", account: "Cash", source: "manual" },
+    { day: 6, amount: 350, category: "Food & Dining", note: "Foodpanda dinner order", account: "Nagad", source: "sms" },
+    { day: 7, amount: 800, category: "Education", note: "Textbooks from Nilkhet", account: "Cash", source: "manual" },
+    { day: 8, amount: 150, category: "Bills & Utilities", note: "Mobile recharge GP", account: "bKash", source: "sms" },
+    { day: 9, amount: 200, category: "Food & Dining", note: "Coffee at Gloria Jean's", account: "Cash", source: "manual" },
+    { day: 10, amount: 550, category: "Shopping", note: "Daraz order - headphones", account: "bKash", source: "mail" },
+    { day: 11, amount: 80, category: "Transport", note: "Rickshaw fare", account: "Cash", source: "manual" },
+    { day: 12, amount: 320, category: "Food & Dining", note: "Team lunch at Kacchi Bhai", account: "bKash", source: "sms" },
+    { day: 13, amount: 250, category: "Groceries", note: "Snacks and drinks", account: "Cash", source: "manual" },
+    { day: 14, amount: 600, category: "Entertainment", note: "Movie at Star Cineplex", account: "Nagad", source: "sms" },
+    { day: 15, amount: 200, category: "Transport", note: "Uber to friend's place", account: "bKash", source: "sms" },
+    { day: 16, amount: 120, category: "Personal Care", note: "Haircut at salon", account: "Cash", source: "manual" },
+    { day: 17, amount: 400, category: "Food & Dining", note: "Dinner at Chillox", account: "Nagad", source: "sms" },
+    { day: 18, amount: 150, category: "Health", note: "Pharmacy - vitamins", account: "Cash", source: "manual" },
+    { day: 19, amount: 500, category: "Bills & Utilities", note: "Internet bill payment", account: "bKash", source: "sms" },
+    { day: 20, amount: 280, category: "Food & Dining", note: "Pizza from Domino's", account: "bKash", source: "sms" },
+    { day: 22, amount: 750, category: "Shopping", note: "New shirt from Aarong", account: "bKash", source: "sms" },
+    { day: 24, amount: 95, category: "Transport", note: "Bus fare", account: "Cash", source: "manual" },
+    { day: 25, amount: 380, category: "Food & Dining", note: "Friends' birthday treat", account: "Cash", source: "manual" },
+    { day: 27, amount: 200, category: "Bills & Utilities", note: "Mobile recharge", account: "bKash", source: "sms" },
+    { day: 28, amount: 450, category: "Entertainment", note: "Gaming zone with friends", account: "Nagad", source: "sms" },
+  ];
+
+  m2Expenses.forEach((e) => {
+    s.transactions.push({
+      id: Math.random().toString(36),
+      type: "expense",
+      amount: e.amount,
+      currency: "BDT",
+      category: e.category,
+      note: e.note,
+      source: e.source as Source,
+      date: new Date(m2Start.getFullYear(), m2Start.getMonth(), e.day).toISOString(),
+      account: e.account as Account,
+      location: null,
+    });
+  });
+
+  // Savings transfer - Month -2
   s.transactions.push({
     id: Math.random().toString(36),
-    type: "income",
-    amount: 5000,
+    type: "transfer",
+    amount: 2000,
     currency: "BDT",
-    category: "Allowance",
-    note: "Monthly allowance",
+    category: "Savings",
+    note: "Monthly savings to bank",
     source: "manual",
-    date: new Date(currentYear, currentMonth, 1).toISOString(),
-    account: "Cash",
+    date: new Date(m2Start.getFullYear(), m2Start.getMonth(), 29).toISOString(),
+    account: "Bank",
     location: null,
   });
 
-  // Weekly pocket money for current month (up to current week)
-  const weeksElapsed = Math.floor(currentDay / 7);
-  for (let w = 0; w <= weeksElapsed && w < 4; w++) {
-    const day = 1 + w * 7;
-    if (day <= currentDay) {
-      s.transactions.push({
-        id: Math.random().toString(36),
-        type: "income",
-        amount: 500,
-        currency: "BDT",
-        category: "Pocket Money",
-        note: `Week ${w + 1}`,
-        source: "manual",
-        date: new Date(currentYear, currentMonth, day).toISOString(),
-        account: "Cash",
-        location: null,
-      });
+  // === MONTH -1: Complete financial picture ===
+  const month1 = getMonthRange(-1);
+  const m1Start = new Date(month1.start);
+  
+  // Income - Month -1
+  s.transactions.push(
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 8000,
+      currency: "BDT",
+      category: "Allowance",
+      note: "Monthly allowance from family",
+      source: "manual",
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 1).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 6500,
+      currency: "BDT",
+      category: "Freelance",
+      note: "Mobile app UI design",
+      source: "manual",
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 10).toISOString(),
+      account: "bKash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 2000,
+      currency: "BDT",
+      category: "Gift",
+      note: "Eid gift from relatives",
+      source: "manual",
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 12).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 8).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 15).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 22).toISOString(),
+      account: "Cash",
+      location: null,
     }
+  );
+
+  // Expenses - Month -1
+  const m1Expenses = [
+    { day: 1, amount: 300, category: "Food & Dining", note: "Breakfast at The Daily Star Cafe", account: "Cash", source: "manual" },
+    { day: 2, amount: 150, category: "Transport", note: "Pathao to university", account: "bKash", source: "sms" },
+    { day: 3, amount: 520, category: "Food & Dining", note: "Lunch buffet at Hotel Sarina", account: "Nagad", source: "sms" },
+    { day: 4, amount: 1500, category: "Education", note: "Semester project materials", account: "Bank", source: "mail" },
+    { day: 5, amount: 75, category: "Transport", note: "Bus fare for the week", account: "Cash", source: "manual" },
+    { day: 6, amount: 420, category: "Food & Dining", note: "Shohoz Food delivery", account: "bKash", source: "sms" },
+    { day: 7, amount: 250, category: "Personal Care", note: "Skincare products", account: "Cash", source: "manual" },
+    { day: 8, amount: 180, category: "Bills & Utilities", note: "Mobile data pack", account: "bKash", source: "sms" },
+    { day: 9, amount: 350, category: "Food & Dining", note: "Burger King with friends", account: "Cash", source: "manual" },
+    { day: 10, amount: 850, category: "Shopping", note: "New backpack from Bata", account: "bKash", source: "sms" },
+    { day: 11, amount: 200, category: "Transport", note: "Uber to shopping mall", account: "bKash", source: "sms" },
+    { day: 12, amount: 480, category: "Entertainment", note: "Bowling at Bashundhara City", account: "Nagad", source: "sms" },
+    { day: 13, amount: 320, category: "Food & Dining", note: "Dinner at Thai restaurant", account: "bKash", source: "sms" },
+    { day: 14, amount: 150, category: "Groceries", note: "Snacks from Shwapno", account: "Cash", source: "manual" },
+    { day: 15, amount: 700, category: "Entertainment", note: "Concert tickets", account: "bKash", source: "mail" },
+    { day: 17, amount: 280, category: "Food & Dining", note: "Coffee and cake", account: "Cash", source: "manual" },
+    { day: 18, amount: 95, category: "Transport", note: "Rickshaw rides", account: "Cash", source: "manual" },
+    { day: 19, amount: 400, category: "Health", note: "Doctor consultation", account: "bKash", source: "sms" },
+    { day: 20, amount: 550, category: "Shopping", note: "Stationary from New Market", account: "Cash", source: "manual" },
+    { day: 21, amount: 380, category: "Food & Dining", note: "Pizza delivery", account: "Nagad", source: "sms" },
+    { day: 22, amount: 200, category: "Bills & Utilities", note: "Electricity bill share", account: "bKash", source: "sms" },
+    { day: 23, amount: 650, category: "Entertainment", note: "Gaming subscription", account: "bKash", source: "mail" },
+    { day: 24, amount: 120, category: "Transport", note: "Bus fare", account: "Cash", source: "manual" },
+    { day: 25, amount: 500, category: "Food & Dining", note: "Group dinner treat", account: "Cash", source: "manual" },
+    { day: 26, amount: 300, category: "Personal Care", note: "Salon visit", account: "Cash", source: "manual" },
+    { day: 27, amount: 220, category: "Groceries", note: "Weekly groceries", account: "bKash", source: "sms" },
+    { day: 28, amount: 180, category: "Bills & Utilities", note: "Mobile recharge", account: "bKash", source: "sms" },
+  ];
+
+  m1Expenses.forEach((e) => {
+    s.transactions.push({
+      id: Math.random().toString(36),
+      type: "expense",
+      amount: e.amount,
+      currency: "BDT",
+      category: e.category,
+      note: e.note,
+      source: e.source as Source,
+      date: new Date(m1Start.getFullYear(), m1Start.getMonth(), e.day).toISOString(),
+      account: e.account as Account,
+      location: null,
+    });
+  });
+
+  // Savings transfer - Month -1
+  s.transactions.push({
+    id: Math.random().toString(36),
+    type: "transfer",
+    amount: 2500,
+    currency: "BDT",
+    category: "Savings",
+    note: "Laptop fund savings",
+    source: "manual",
+    date: new Date(m1Start.getFullYear(), m1Start.getMonth(), 29).toISOString(),
+    account: "Bank",
+    location: null,
+  });
+
+  // === CURRENT MONTH: Up to today ===
+  // Income - Current month
+  s.transactions.push(
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 8000,
+      currency: "BDT",
+      category: "Allowance",
+      note: "Monthly allowance from family",
+      source: "manual",
+      date: new Date(currentYear, currentMonth, 1).toISOString(),
+      account: "Cash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 8500,
+      currency: "BDT",
+      category: "Freelance",
+      note: "E-commerce website project",
+      source: "manual",
+      date: new Date(currentYear, currentMonth, 3).toISOString(),
+      account: "bKash",
+      location: null,
+    },
+    {
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(currentYear, currentMonth, 8).toISOString(),
+      account: "Cash",
+      location: null,
+    }
+  );
+
+  // Add second week pocket money if applicable
+  if (currentDay >= 15) {
+    s.transactions.push({
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(currentYear, currentMonth, 15).toISOString(),
+      account: "Cash",
+      location: null,
+    });
+  }
+
+  // Add third week pocket money if applicable
+  if (currentDay >= 22) {
+    s.transactions.push({
+      id: Math.random().toString(36),
+      type: "income",
+      amount: 1500,
+      currency: "BDT",
+      category: "Pocket Money",
+      note: "Weekly pocket money",
+      source: "manual",
+      date: new Date(currentYear, currentMonth, 22).toISOString(),
+      account: "Cash",
+      location: null,
+    });
   }
 
   // Current month expenses (up to today)
-  const currentMonthExpenses = [
-    { day: 2, amount: 150, category: "Food & Dining", note: "Breakfast at canteen", account: "Cash", source: "manual" },
-    { day: 2, amount: 200, category: "Transport", note: "Uber ride", account: "bKash", source: "sms" },
-    { day: 3, amount: 300, category: "Food & Dining", note: "Lunch payment", account: "bKash", source: "sms" },
-    { day: 3, amount: 450, category: "Shopping", note: "Daraz order", account: "Nagad", source: "mail" },
-    { day: 4, amount: 50, category: "Transport", note: "Bus fare", account: "Cash", source: "manual" },
-    { day: 4, amount: 150, category: "Bills & Utilities", note: "Mobile recharge", account: "bKash", source: "sms" },
-    { day: 5, amount: 120, category: "Food & Dining", note: "Coffee & snacks", account: "Cash", source: "manual" },
-    { day: 5, amount: 380, category: "Education", note: "Course books", account: "Bank", source: "mail" },
-    { day: 6, amount: 85, category: "Transport", note: "Rickshaw", account: "Cash", source: "manual" },
-    { day: 6, amount: 250, category: "Food & Dining", note: "Food Panda order", account: "Rocket", source: "sms" },
+  const currentExpenses = [
+    { day: 1, amount: 280, category: "Food & Dining", note: "Breakfast at North End Coffee", account: "Cash", source: "manual" },
+    { day: 2, amount: 200, category: "Transport", note: "Pathao bike to campus", account: "bKash", source: "sms" },
+    { day: 2, amount: 450, category: "Food & Dining", note: "Lunch at Takeout", account: "bKash", source: "sms" },
+    { day: 3, amount: 750, category: "Shopping", note: "Daraz flash sale - smartwatch", account: "Nagad", source: "mail" },
+    { day: 4, amount: 85, category: "Transport", note: "Bus fare", account: "Cash", source: "manual" },
+    { day: 4, amount: 200, category: "Bills & Utilities", note: "GP Flexiplan recharge", account: "bKash", source: "sms" },
+    { day: 5, amount: 180, category: "Food & Dining", note: "Starbucks coffee", account: "Cash", source: "manual" },
+    { day: 5, amount: 1200, category: "Education", note: "Online course - JavaScript", account: "Bank", source: "mail" },
+    { day: 6, amount: 120, category: "Transport", note: "Rickshaw rides", account: "Cash", source: "manual" },
+    { day: 6, amount: 380, category: "Food & Dining", note: "Foodpanda order - Chinese", account: "Rocket", source: "sms" },
+    { day: 7, amount: 550, category: "Entertainment", note: "Movie tickets - Avatar", account: "bKash", source: "sms" },
+    { day: 8, amount: 300, category: "Food & Dining", note: "Lunch with project team", account: "Cash", source: "manual" },
+    { day: 9, amount: 250, category: "Groceries", note: "Snacks from Agora", account: "Cash", source: "manual" },
   ];
 
-  currentMonthExpenses.forEach((e) => {
+  currentExpenses.forEach((e) => {
     if (e.day <= currentDay) {
       s.transactions.push({
         id: Math.random().toString(36),
@@ -483,93 +818,10 @@ function seedSampleData() {
     }
   });
 
-  // Seed previous 2 months with complete data
-  for (let m = -2; m <= -1; m++) {
-    const { start } = getMonthRange(m);
-    const monthStart = new Date(start);
-
-    // Monthly allowance: ৳5,000 on 1st
-    s.transactions.push({
-      id: Math.random().toString(36),
-      type: "income",
-      amount: 5000,
-      currency: "BDT",
-      category: "Allowance",
-      note: "Monthly allowance",
-      source: "manual",
-      date: new Date(monthStart.getFullYear(), monthStart.getMonth(), 1).toISOString(),
-      account: "Cash",
-      location: null,
-    });
-
-    // Weekly pocket money: ৳500 x 4 weeks
-    for (let w = 0; w < 4; w++) {
-      s.transactions.push({
-        id: Math.random().toString(36),
-        type: "income",
-        amount: 500,
-        currency: "BDT",
-        category: "Pocket Money",
-        note: `Week ${w + 1}`,
-        source: "manual",
-        date: new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 + w * 7).toISOString(),
-        account: "Cash",
-        location: null,
-      });
-    }
-
-    // Expenses throughout month
-    const expenses = [
-      { day: 2, amount: 150, category: "Food & Dining", note: "Breakfast at canteen", account: "Cash", source: "manual" },
-      { day: 3, amount: 300, category: "Food & Dining", note: "Lunch with friends", account: "bKash", source: "sms" },
-      { day: 5, amount: 50, category: "Transport", note: "Bus fare", account: "Cash", source: "manual" },
-      { day: 7, amount: 400, category: "Education", note: "Course books", account: "Bank", source: "mail" },
-      { day: 9, amount: 120, category: "Food & Dining", note: "Coffee & snacks", account: "Cash", source: "manual" },
-      { day: 10, amount: 250, category: "Food & Dining", note: "Dinner", account: "Nagad", source: "sms" },
-      { day: 12, amount: 100, category: "Transport", note: "Rickshaw", account: "Cash", source: "manual" },
-      { day: 14, amount: 180, category: "Groceries", note: "Weekly groceries", account: "bKash", source: "sms" },
-      { day: 15, amount: 600, category: "Entertainment", note: "Movie tickets", account: "bKash", source: "sms" },
-      { day: 17, amount: 85, category: "Personal Care", note: "Haircut", account: "Cash", source: "manual" },
-      { day: 18, amount: 350, category: "Food & Dining", note: "Restaurant", account: "Nagad", source: "sms" },
-      { day: 20, amount: 80, category: "Transport", note: "Bus pass", account: "Cash", source: "manual" },
-      { day: 21, amount: 200, category: "Health", note: "Medicine", account: "Bank", source: "mail" },
-      { day: 22, amount: 500, category: "Shopping", note: "Clothes", account: "bKash", source: "sms" },
-      { day: 24, amount: 150, category: "Bills & Utilities", note: "Mobile recharge", account: "bKash", source: "sms" },
-      { day: 25, amount: 200, category: "Food & Dining", note: "Snacks", account: "Cash", source: "manual" },
-      { day: 27, amount: 320, category: "Food & Dining", note: "Birthday treat", account: "Nagad", source: "sms" },
-    ];
-
-    expenses.forEach((e) => {
-      s.transactions.push({
-        id: Math.random().toString(36),
-        type: "expense",
-        amount: e.amount,
-        currency: "BDT",
-        category: e.category,
-        note: e.note,
-        source: e.source as Source,
-        date: new Date(monthStart.getFullYear(), monthStart.getMonth(), e.day).toISOString(),
-        account: e.account as Account,
-        location: null,
-      });
-    });
-
-    // Savings transfer
-    s.transactions.push({
-      id: Math.random().toString(36),
-      type: "transfer",
-      amount: 1000,
-      currency: "BDT",
-      category: "Savings",
-      note: "Monthly savings",
-      source: "manual",
-      date: new Date(monthStart.getFullYear(), monthStart.getMonth(), 28).toISOString(),
-      account: "Bank",
-      location: null,
-    });
-  }
-
   setState(s);
+  
+  // Seed security notifications
+  seedSecurityNotifications();
 }
 
 function seedSecurityNotifications() {
@@ -578,61 +830,101 @@ function seedSecurityNotifications() {
   
   const sampleNotifications = [
     {
-      message: "Suspected phishing attempt blocked",
+      message: "Critical phishing attempt blocked",
       type: "phishing" as const,
-      confidence: 92,
-      details: "Message claimed you won ৳10,000 lottery. Contains suspicious link requesting personal banking information.",
-      tags: ["sms", "blocked"],
+      confidence: 96,
+      details: "Fake bKash message claiming account suspension. Requested immediate PIN verification via link. Official bKash NEVER requests PINs through SMS. Link leads to phishing site mimicking bKash login.",
+      tags: ["sms", "blocked", "critical"],
       hoursAgo: 2
     },
     {
-      message: "High-risk SMS detected",
-      type: "phishing" as const,
-      confidence: 87,
-      details: "Fake bKash verification message asking to click link and provide PIN. Official bKash never requests PIN via SMS.",
-      tags: ["sms", "high-risk"],
-      hoursAgo: 5
-    },
-    {
-      message: "Promotional content identified",
-      type: "promo" as const,
-      confidence: 95,
-      details: "GP internet package offer detected. Legitimate promotional message from verified sender.",
-      tags: ["sms", "promo"],
-      hoursAgo: 8
-    },
-    {
-      message: "Investment scam warning",
+      message: "Lottery scam detected and blocked",
       type: "phishing" as const,
       confidence: 94,
-      details: "Message promises ৳30,000 return on ৳10,000 investment. Classic 'get rich quick' scam pattern detected.",
-      tags: ["sms", "scam"],
-      hoursAgo: 12
+      details: "SMS claiming you won ৳50,000 lottery from 'Bangladesh National Lottery Board'. Requests ৳1,500 processing fee to claim prize. Government does not run lottery programs.",
+      tags: ["sms", "scam", "blocked"],
+      hoursAgo: 4
     },
     {
-      message: "Safe message verified",
-      type: "normal" as const,
-      confidence: 98,
-      details: "Personal message from known contact. No suspicious patterns or links detected.",
-      tags: ["sms", "safe"],
-      hoursAgo: 24
-    },
-    {
-      message: "Suspicious job offer detected",
+      message: "Investment fraud warning",
       type: "phishing" as const,
-      confidence: 89,
-      details: "Work-from-home offer claiming ৳12,000/month income. Contains Telegram bot link - common phishing tactic.",
-      tags: ["mail", "job-scam"],
-      hoursAgo: 30
+      confidence: 92,
+      details: "Telegram message promising 300% returns in 7 days through crypto investment. Requires ৳10,000 minimum deposit. Classic Ponzi scheme pattern detected with fake testimonials.",
+      tags: ["telegram", "investment-scam"],
+      hoursAgo: 6
+    },
+    {
+      message: "Promotional message verified safe",
+      type: "promo" as const,
+      confidence: 98,
+      details: "Legitimate Grameenphone offer for 5GB data at ৳49. Sent from official GP number 121. No suspicious links or personal data requests.",
+      tags: ["sms", "promo", "safe"],
+      hoursAgo: 8
     },
     {
       message: "Bank verification scam blocked",
       type: "phishing" as const,
+      confidence: 95,
+      details: "Fake Dutch-Bangla Bank message requesting KYC update through external link. Contains spelling errors. Official DBBL uses in-app notifications for KYC. Reported to Bangladesh Bank.",
+      tags: ["sms", "banking", "blocked"],
+      hoursAgo: 12
+    },
+    {
+      message: "Job offer scam detected",
+      type: "phishing" as const,
+      confidence: 89,
+      details: "Email claiming data entry job paying ৳15,000/month from home. Requires ৳2,500 training fee. Company name doesn't exist in RJSC registry. Common employment scam pattern.",
+      tags: ["mail", "job-scam", "high-risk"],
+      hoursAgo: 18
+    },
+    {
+      message: "Safe personal message",
+      type: "normal" as const,
+      confidence: 99,
+      details: "Message from family member in your contacts. No links, no financial requests, normal conversation pattern. Verified sender.",
+      tags: ["sms", "personal", "safe"],
+      hoursAgo: 24
+    },
+    {
+      message: "Nagad impersonation blocked",
+      type: "phishing" as const,
+      confidence: 97,
+      details: "Fraudulent message claiming Nagad account will be blocked unless you click link to verify identity. Uses unofficial sender number. Official Nagad only sends from 16167.",
+      tags: ["sms", "mobile-banking", "blocked"],
+      hoursAgo: 30
+    },
+    {
+      message: "Suspicious parcel delivery scam",
+      type: "phishing" as const,
+      confidence: 91,
+      details: "SMS about undelivered parcel requiring customs fee payment. You haven't ordered anything recently. Link leads to fake payment gateway designed to steal card details.",
+      tags: ["sms", "delivery-scam"],
+      hoursAgo: 36
+    },
+    {
+      message: "Educational promotion verified",
+      type: "promo" as const,
       confidence: 96,
-      details: "Fake Sonali Bank message requesting account verification. Official banks never request verification via SMS links.",
-      tags: ["sms", "blocked"],
+      details: "Programming.com.bd course discount offer. Legitimate educational platform registered in Bangladesh. Offer verified on official website.",
+      tags: ["mail", "education", "safe"],
       hoursAgo: 48
     },
+    {
+      message: "Romance scam pattern identified",
+      type: "phishing" as const,
+      confidence: 88,
+      details: "Facebook message from unknown profile claiming to be abroad, requesting money for emergency. Profile created 2 weeks ago with stolen photos. Classic romance scam tactic.",
+      tags: ["social-media", "romance-scam"],
+      hoursAgo: 60
+    },
+    {
+      message: "Tax refund scam blocked",
+      type: "phishing" as const,
+      confidence: 93,
+      details: "Email claiming ৳8,500 tax refund from NBR. Links to fake government website requesting bank details. NBR does not process refunds via email.",
+      tags: ["mail", "government-impersonation", "blocked"],
+      hoursAgo: 72
+    }
   ];
 
   sampleNotifications.forEach(notif => {
