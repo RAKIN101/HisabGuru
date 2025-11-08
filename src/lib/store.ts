@@ -208,7 +208,7 @@ export function initializeAccounts() {
   if (!stored) {
     const accounts: AccountBalance[] = [
       { id: "cash", name: "Cash", type: "cash", icon: "💵", balance: 4000 },
-      { id: "bkash", name: "bKash", type: "mobile", icon: "📱", balance: 2000 },
+      { id: "bkash", name: "bKash", type: "mobile", icon: "📱", balance: 3000 },
       { id: "nagad", name: "Nagad", type: "mobile", icon: "📲", balance: 500 },
       { id: "bank", name: "Bank", type: "bank", icon: "🏦", balance: 1000 },
       { id: "rocket", name: "Rocket", type: "mobile", icon: "🚀", balance: 0 },
@@ -282,10 +282,10 @@ export function loadState(): State {
   // Force data refresh if version mismatch
   if (typeof window !== 'undefined') {
     const dataVersion = localStorage.getItem('hisabguru_data_version');
-    if (dataVersion !== 'v2.1') {
+    if (dataVersion !== 'v2.2') {
       localStorage.removeItem('hisabguru_state');
       localStorage.removeItem('hisabguru_accounts');
-      localStorage.setItem('hisabguru_data_version', 'v2.1');
+      localStorage.setItem('hisabguru_data_version', 'v2.2');
       initializeAccounts();
       seedSampleData();
       return getState();
@@ -297,13 +297,11 @@ export function loadState(): State {
     const accounts = getAccounts();
     if (accounts.length === 0) {
       initializeAccounts();
-      recalculateAllAccountBalances();
     }
   }
   
   if (s.transactions.length === 0) {
     seedSampleData();
-    recalculateAllAccountBalances();
     return getState();
   }
   if (s.notifications.length === 0) {

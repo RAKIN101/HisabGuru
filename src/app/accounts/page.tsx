@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Plus, X, Trash2, Edit2, CreditCard, Banknote, Building2, Smartphone } from "lucide-react";
 import { useAudioFeedback, useInputAudio } from "@/lib/useAudioFeedback";
-import { getAccounts, initializeAccounts, recalculateAllAccountBalances } from "@/lib/store";
+import { getAccounts, initializeAccounts } from "@/lib/store";
 import type { AccountBalance } from "@/lib/store";
 
 export default function Accounts() {
@@ -20,8 +20,29 @@ export default function Accounts() {
 
   useEffect(() => {
     loadAccounts();
-    // Recalculate balances on mount to ensure consistency
-    recalculateAllAccountBalances();
+  }, []);
+
+  // Refresh accounts when component becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        loadAccounts();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also reload when window gains focus
+    const handleFocus = () => {
+      loadAccounts();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const loadAccounts = () => {
