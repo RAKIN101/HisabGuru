@@ -459,9 +459,8 @@ export default function Home() {
                       className="w-full rounded-xl border-2 border-gray-200 bg-white p-3 text-sm font-medium focus:border-teal-500 focus:outline-none"
                     >
                       {categories.map((cat) => (
-                        <option key={cat} value={cat} className="flex items-center">
-                          <span className="mr-2">{getCategoryIcon(cat)}</span>
-                          {cat}
+                        <option key={cat} value={cat}>
+                          {getCategoryIcon(cat)} {cat}
                         </option>
                       ))}
                     </select>

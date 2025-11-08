@@ -166,7 +166,11 @@ export default function Accounts() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="text-lg font-bold text-gray-900">৳{account.balance.toLocaleString()}</p>
+                      <p className={`text-lg font-bold ${
+                        account.balance < 0 ? "text-red-600" : "text-gray-900"
+                      }`}>
+                        ৳{account.balance.toLocaleString()}
+                      </p>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
