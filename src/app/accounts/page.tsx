@@ -3,28 +3,14 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Plus, X, Trash2, Edit2, CreditCard, Banknote, Building2, Smartphone } from "lucide-react";
 import { useAudioFeedback, useInputAudio } from "@/lib/useAudioFeedback";
-
-type AccountType = {
-  id: string;
-  name: string;
-  balance: number;
-  type: "cash" | "mobile" | "bank" | "custom";
-  icon: string;
-};
-
-const DEFAULT_ACCOUNTS = [
-  { id: "cash", name: "Cash", type: "cash" as const, icon: "💵" },
-  { id: "bkash", name: "bKash", type: "mobile" as const, icon: "📱" },
-  { id: "nagad", name: "Nagad", type: "mobile" as const, icon: "📲" },
-  { id: "bank", name: "Bank", type: "bank" as const, icon: "🏦" },
-  { id: "rocket", name: "Rocket", type: "mobile" as const, icon: "🚀" },
-];
+import { getAccounts, initializeAccounts, recalculateAllAccountBalances } from "@/lib/store";
+import type { AccountBalance } from "@/lib/store";
 
 export default function Accounts() {
-  const [accounts, setAccounts] = useState<AccountType[]>([]);
+  const [accounts, setAccounts] = useState<AccountBalance[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingAccount, setEditingAccount] = useState<AccountType | null>(null);
+  const [editingAccount, setEditingAccount] = useState<AccountBalance | null>(null);
   const [newAccountName, setNewAccountName] = useState("");
   const [newAccountBalance, setNewAccountBalance] = useState("");
   const [newAccountIcon, setNewAccountIcon] = useState("💳");
@@ -34,26 +20,19 @@ export default function Accounts() {
 
   useEffect(() => {
     loadAccounts();
+    // Recalculate balances on mount to ensure consistency
+    recalculateAllAccountBalances();
   }, []);
 
   const loadAccounts = () => {
     if (typeof window === "undefined") return;
     
-    const stored = localStorage.getItem("hisabguru_accounts");
-    if (stored) {
-      setAccounts(JSON.parse(stored));
-    } else {
-      // Initialize with default accounts with zero balance
-      const defaultAccounts: AccountType[] = DEFAULT_ACCOUNTS.map(acc => ({
-        ...acc,
-        balance: 0
-      }));
-      setAccounts(defaultAccounts);
-      localStorage.setItem("hisabguru_accounts", JSON.stringify(defaultAccounts));
-    }
+    initializeAccounts();
+    const accountsList = getAccounts();
+    setAccounts(accountsList);
   };
 
-  const saveAccounts = (newAccounts: AccountType[]) => {
+  const saveAccounts = (newAccounts: AccountBalance[]) => {
     if (typeof window === "undefined") return;
     localStorage.setItem("hisabguru_accounts", JSON.stringify(newAccounts));
     setAccounts(newAccounts);
@@ -62,7 +41,7 @@ export default function Accounts() {
   const handleAddAccount = () => {
     if (!newAccountName.trim()) return;
     
-    const newAccount: AccountType = {
+    const newAccount: AccountBalance = {
       id: `custom_${Date.now()}`,
       name: newAccountName.trim(),
       balance: parseFloat(newAccountBalance) || 0,
@@ -112,7 +91,7 @@ export default function Accounts() {
     }
   };
 
-  const openEditModal = (account: AccountType) => {
+  const openEditModal = (account: AccountBalance) => {
     setEditingAccount(account);
     setNewAccountName(account.name);
     setNewAccountBalance(account.balance.toString());

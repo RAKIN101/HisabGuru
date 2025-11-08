@@ -164,6 +164,22 @@ export type State = {
   memories: Memory[];
 };
 
+export type AccountBalance = {
+  id: string;
+  name: string;
+  balance: number;
+  type: "cash" | "mobile" | "bank" | "custom";
+  icon: string;
+};
+
+const DEFAULT_ACCOUNTS = [
+  { id: "cash", name: "Cash", type: "cash" as const, icon: "💵" },
+  { id: "bkash", name: "bKash", type: "mobile" as const, icon: "📱" },
+  { id: "nagad", name: "Nagad", type: "mobile" as const, icon: "📲" },
+  { id: "bank", name: "Bank", type: "bank" as const, icon: "🏦" },
+  { id: "rocket", name: "Rocket", type: "mobile" as const, icon: "🚀" },
+];
+
 function getState(): State {
   if (typeof window === "undefined") return { transactions: [], notifications: [], memories: [] };
   const raw = localStorage.getItem("hisabguru_state");
@@ -176,22 +192,116 @@ function setState(s: State) {
   localStorage.setItem("hisabguru_state", JSON.stringify(s));
 }
 
+// Account Balance Management
+export function getAccounts(): AccountBalance[] {
+  if (typeof window === "undefined") return [];
+  const stored = localStorage.getItem("hisabguru_accounts");
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return [];
+}
+
+export function initializeAccounts() {
+  if (typeof window === "undefined") return;
+  const stored = localStorage.getItem("hisabguru_accounts");
+  if (!stored) {
+    const accounts: AccountBalance[] = DEFAULT_ACCOUNTS.map(acc => ({
+      ...acc,
+      balance: 0
+    }));
+    localStorage.setItem("hisabguru_accounts", JSON.stringify(accounts));
+  }
+}
+
+export function updateAccountBalance(accountName: Account, txType: TxType, amount: number) {
+  if (typeof window === "undefined") return;
+  
+  const accounts = getAccounts();
+  const accountMap: Record<Account, string> = {
+    "Cash": "cash",
+    "bKash": "bkash",
+    "Nagad": "nagad",
+    "Bank": "bank",
+    "Rocket": "rocket"
+  };
+  
+  const accountId = accountMap[accountName];
+  const accountIndex = accounts.findIndex(acc => acc.id === accountId);
+  
+  if (accountIndex !== -1) {
+    if (txType === "income") {
+      accounts[accountIndex].balance += amount;
+    } else if (txType === "expense") {
+      accounts[accountIndex].balance -= amount;
+    }
+    // For transfer, we don't change balance (it's a movement between accounts)
+    localStorage.setItem("hisabguru_accounts", JSON.stringify(accounts));
+  }
+}
+
+export function recalculateAllAccountBalances() {
+  if (typeof window === "undefined") return;
+  
+  // Reset all account balances to 0
+  const accounts = getAccounts();
+  accounts.forEach(acc => acc.balance = 0);
+  
+  // Recalculate from all transactions
+  const state = getState();
+  state.transactions.forEach(tx => {
+    const accountMap: Record<Account, string> = {
+      "Cash": "cash",
+      "bKash": "bkash",
+      "Nagad": "nagad",
+      "Bank": "bank",
+      "Rocket": "rocket"
+    };
+    
+    const accountId = accountMap[tx.account];
+    const accountIndex = accounts.findIndex(acc => acc.id === accountId);
+    
+    if (accountIndex !== -1) {
+      if (tx.type === "income") {
+        accounts[accountIndex].balance += tx.amount;
+      } else if (tx.type === "expense") {
+        accounts[accountIndex].balance -= tx.amount;
+      }
+    }
+  });
+  
+  localStorage.setItem("hisabguru_accounts", JSON.stringify(accounts));
+}
+
 export function loadState(): State {
   const s = getState();
   
   // Force data refresh if version mismatch
   if (typeof window !== 'undefined') {
     const dataVersion = localStorage.getItem('hisabguru_data_version');
-    if (dataVersion !== 'v1.1') {
+    if (dataVersion !== 'v1.2') {
       localStorage.removeItem('hisabguru_state');
-      localStorage.setItem('hisabguru_data_version', 'v1.1');
+      localStorage.removeItem('hisabguru_accounts');
+      localStorage.setItem('hisabguru_data_version', 'v1.2');
+      initializeAccounts();
       seedSampleData();
+      recalculateAllAccountBalances();
       return getState();
+    }
+  }
+  
+  // Initialize accounts if not exists
+  if (typeof window !== 'undefined') {
+    const accounts = getAccounts();
+    if (accounts.length === 0) {
+      initializeAccounts();
+      recalculateAllAccountBalances();
     }
   }
   
   if (s.transactions.length === 0) {
     seedSampleData();
+    recalculateAllAccountBalances();
     return getState();
   }
   if (s.notifications.length === 0) {
@@ -206,10 +316,19 @@ export function addTransaction(tx: Omit<Transaction, "id">) {
   s.transactions.push({ ...tx, id: Math.random().toString(36).substr(2, 9) });
   s.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   setState(s);
+  
+  // Update account balance
+  updateAccountBalance(tx.account, tx.type, tx.amount);
 }
 
 export function deleteTransaction(id: string) {
   const s = getState();
+  const transaction = s.transactions.find(t => t.id === id);
+  if (transaction) {
+    // Reverse the account balance change
+    const reverseType = transaction.type === "income" ? "expense" : transaction.type === "expense" ? "income" : "transfer";
+    updateAccountBalance(transaction.account, reverseType, transaction.amount);
+  }
   s.transactions = s.transactions.filter(t => t.id !== id);
   setState(s);
 }

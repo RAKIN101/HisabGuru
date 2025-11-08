@@ -1,6 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌟 HisabGuru - AI-Powered Financial Assistant
+
+## 🚀 [Live Application](https://hisabguruwu.vercel.app/overview)
+
+**[Click here to try HisabGuru now! →](https://hisabguruwu.vercel.app/overview)**
+
+---
+
+## About HisabGuru
+
+**HisabGuru** is an intelligent financial management application designed specifically for students and young professionals in Bangladesh. It combines powerful AI technology with an intuitive interface to help users take control of their finances, stay safe from fraud, and make smarter money decisions.
+
+### 🎯 Key Features
+
+- **📊 Smart Transaction Tracking**: Automatically categorize and track your income and expenses across multiple accounts (Cash, bKash, Nagad, Bank, Rocket, and custom accounts)
+- **💰 Account Management**: Real-time balance tracking across all your accounts with automatic updates when transactions are added or deleted
+- **🤖 AI-Powered Budgeting**: Get personalized budget recommendations based on your spending patterns and financial goals
+- **🛡️ Fraud Detection**: Advanced AI model to detect phishing attempts, scams, and suspicious messages in real-time
+- **📈 Financial Analysis**: Visualize spending patterns with interactive charts and get actionable insights
+- **💬 AI Chat Assistant**: Natural language financial advice and answers to your money questions
+- **🎤 Voice & Audio Feedback**: Interactive audio responses for enhanced user experience
+- **📱 Mobile-First Design**: Beautiful, responsive interface optimized for mobile devices
+
+### 🌐 Technology Stack
+
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **Styling**: Tailwind CSS with custom gradients and animations
+- **AI Integration**: OpenAI GPT-4o-mini for intelligent insights
+- **Data Visualization**: Recharts for beautiful financial charts
+- **Animations**: Framer Motion for smooth, delightful interactions
+- **Storage**: LocalStorage for client-side data persistence
+
+### 💡 What Makes HisabGuru Special?
+
+1. **Bangladeshi Context**: Built specifically for the Bangladeshi financial ecosystem with support for local payment methods
+2. **Security First**: Advanced fraud detection trained on Bangladeshi phishing and scam patterns
+3. **Student-Friendly**: Designed for students with features like allowance tracking and expense categorization
+4. **Smart Budgeting**: AI that understands context and can adjust budgets for special events like birthdays or trips
+5. **No Login Required**: Privacy-focused design with all data stored locally on your device
+
+---
 
 ## Getting Started
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 First, run the development server:
 
